@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { AuthModal } from "@/components/auth-modal";
 
 const navLinks = [
   { href: "#features", label: "المزايا" },
@@ -17,8 +19,11 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -27,10 +32,16 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const soon = () =>
-    toast.info("التسجيل قريبًا — جرّب المساعد الذكي «اسأل سِمَة» الآن", {
-      description: "اضغط زر المساعد في الأسفل لبدء المحادثة.",
-    });
+  const openAuth = (m: "login" | "register") => {
+    setAuthMode(m);
+    setAuthOpen(true);
+  };
+
+  const handleSignOut = () => {
+    signOut({ redirect: false });
+    toast.success("تم تسجيل الخروج بنجاح");
+    setTimeout(() => window.location.reload(), 400);
+  };
 
   return (
     <header
@@ -79,22 +90,46 @@ export function Navbar() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={soon}
-            className="hidden sm:inline-flex"
-          >
-            دخول
-          </Button>
-          <Button
-            size="sm"
-            onClick={soon}
-            className="hidden sm:inline-flex gap-1.5"
-          >
-            <Sparkles className="size-4" />
-            ابدأ مجانًا
-          </Button>
+          {session?.user ? (
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs">
+                <span className="flex size-6 items-center justify-center rounded-full bg-primary/15 font-bold text-primary">
+                  {session.user.name?.charAt(0) || "م"}
+                </span>
+                <span className="max-w-[100px] truncate font-medium">
+                  {session.user.name}
+                </span>
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="gap-1.5"
+              >
+                <LogOut className="size-4" />
+                خروج
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => openAuth("login")}
+                className="hidden sm:inline-flex"
+              >
+                دخول
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => openAuth("register")}
+                className="hidden sm:inline-flex gap-1.5"
+              >
+                <Sparkles className="size-4" />
+                ابدأ مجانًا
+              </Button>
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -121,16 +156,55 @@ export function Navbar() {
             </Link>
           ))}
           <div className="flex flex-col gap-2 pt-3 mt-2 border-t border-border">
-            <Button variant="outline" onClick={soon} className="w-full">
-              دخول
-            </Button>
-            <Button onClick={soon} className="w-full gap-1.5">
-              <Sparkles className="size-4" />
-              ابدأ مجانًا
-            </Button>
+            {session?.user ? (
+              <>
+                <div className="flex items-center gap-2 rounded-lg bg-card/60 px-3 py-2.5">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-primary/15 font-bold text-primary">
+                    {session.user.name?.charAt(0) || "م"}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">
+                      {session.user.name}
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground" dir="ltr">
+                      {session.user.email}
+                    </div>
+                  </div>
+                </div>
+                <Button variant="outline" onClick={handleSignOut} className="w-full gap-1.5">
+                  <LogOut className="size-4" />
+                  تسجيل الخروج
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    openAuth("login");
+                    setMobileOpen(false);
+                  }}
+                  className="w-full"
+                >
+                  دخول
+                </Button>
+                <Button
+                  onClick={() => {
+                    openAuth("register");
+                    setMobileOpen(false);
+                  }}
+                  className="w-full gap-1.5"
+                >
+                  <Sparkles className="size-4" />
+                  ابدأ مجانًا
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
+
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} mode={authMode} />
     </header>
   );
 }

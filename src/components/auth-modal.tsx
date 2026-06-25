@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Rocket, Loader2, Github, Mail } from "lucide-react";
+import { Loader2, Mail, Lock, User } from "lucide-react";
 
 interface AuthModalProps {
   open?: boolean;
@@ -59,32 +59,34 @@ export function AuthModal({
       } else {
         toast.success(
           activeTab === "register"
-            ? "Account created! Welcome to Semah 🎉"
-            : "Welcome back!"
+            ? "تم إنشاء حسابك! أهلًا بك في سِمَة 🎉"
+            : "أهلًا بعودتك!"
         );
         setOpen(false);
-        setTimeout(() => window.location.reload(), 500);
+        setTimeout(() => window.location.reload(), 600);
       }
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error("حدث خطأ ما. حاول مرة أخرى.");
     } finally {
       setLoading(false);
     }
   };
 
-  const content = (
+  return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader className="text-center">
-          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Rocket className="size-6" />
+          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl brand-gradient text-primary-foreground font-display text-2xl font-extrabold shadow-lg shadow-primary/30">
+            س
           </div>
-          <DialogTitle className="text-2xl">Welcome to Semah</DialogTitle>
+          <DialogTitle className="font-display text-2xl font-extrabold">
+            أهلًا بك في سِمَة
+          </DialogTitle>
           <DialogDescription>
             {activeTab === "login"
-              ? "Sign in to your account to continue"
-              : "Create an account to get started free"}
+              ? "سجّل الدخول إلى حسابك للمتابعة"
+              : "أنشئ حسابًا مجانيًا للبدء"}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,93 +96,119 @@ export function AuthModal({
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Sign Up</TabsTrigger>
+            <TabsTrigger value="login">دخول</TabsTrigger>
+            <TabsTrigger value="register">حساب جديد</TabsTrigger>
           </TabsList>
 
+          {/* دخول */}
           <TabsContent value="login">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                />
+                <Label htmlFor="login-email">البريد الإلكتروني</Label>
+                <div className="relative">
+                  <Mail className="absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="login-email"
+                    type="email"
+                    dir="ltr"
+                    placeholder="you@example.com"
+                    required
+                    className="ps-3 pe-10 text-left"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="login-password">Password</Label>
-                <Input
-                  id="login-password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                />
+                <Label htmlFor="login-password">كلمة المرور</Label>
+                <div className="relative">
+                  <Lock className="absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="login-password"
+                    type="password"
+                    dir="ltr"
+                    placeholder="••••••••"
+                    required
+                    className="ps-3 pe-10 text-left"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                  />
+                </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
-                Sign In
+              <Button type="submit" className="w-full gap-2" disabled={loading}>
+                {loading && <Loader2 className="size-4 animate-spin" />}
+                تسجيل الدخول
               </Button>
             </form>
           </TabsContent>
 
+          {/* حساب جديد */}
           <TabsContent value="register">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="register-name">Name</Label>
-                <Input
-                  id="register-name"
-                  type="text"
-                  placeholder="John Doe"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                />
+                <Label htmlFor="register-name">الاسم</Label>
+                <div className="relative">
+                  <User className="absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="register-name"
+                    type="text"
+                    placeholder="اسمك الكامل"
+                    required
+                    className="ps-3 pe-10"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="register-email">Email</Label>
-                <Input
-                  id="register-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                />
+                <Label htmlFor="register-email">البريد الإلكتروني</Label>
+                <div className="relative">
+                  <Mail className="absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="register-email"
+                    type="email"
+                    dir="ltr"
+                    placeholder="you@example.com"
+                    required
+                    className="ps-3 pe-10 text-left"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="register-password">Password</Label>
-                <Input
-                  id="register-password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                />
+                <Label htmlFor="register-password">كلمة المرور</Label>
+                <div className="relative">
+                  <Lock className="absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="register-password"
+                    type="password"
+                    dir="ltr"
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                    className="ps-3 pe-10 text-left"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Minimum 6 characters
+                  ٦ أحرف على الأقل
                 </p>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
-                Create Account
+              <Button type="submit" className="w-full gap-2" disabled={loading}>
+                {loading && <Loader2 className="size-4 animate-spin" />}
+                إنشاء الحساب
               </Button>
             </form>
           </TabsContent>
@@ -192,42 +220,39 @@ export function AuthModal({
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
-              Or
+              أو
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" disabled className="w-full">
-            <Github className="size-4 mr-2" />
-            GitHub
-          </Button>
-          <Button variant="outline" disabled className="w-full">
-            <Mail className="size-4 mr-2" />
+          <Button variant="outline" disabled className="w-full" title="قريبًا">
             Google
+          </Button>
+          <Button variant="outline" disabled className="w-full" title="قريبًا">
+            GitHub
           </Button>
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          Try the demo:{" "}
+          جرّب حساب العرض:{" "}
           <button
             type="button"
             onClick={() => {
               setFormData({
-                email: "demo@semah.dev",
-                password: "demo1234",
-                name: "Demo User",
+                email: "demo@semah.studio",
+                password: "semah123",
+                name: "مستخدم سِمَة التجريبي",
               });
               setActiveTab("login");
+              toast.info("تم تعبئة بيانات الحساب التجريبي");
             }}
-            className="text-primary hover:underline font-medium"
+            className="font-medium text-primary hover:underline"
           >
-            Use demo account
+            استخدم الحساب التجريبي
           </button>
         </p>
       </DialogContent>
     </Dialog>
   );
-
-  return content;
 }

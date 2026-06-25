@@ -122,3 +122,30 @@ Stage Summary:
 - GitHub: مستودع محلي نظيف (commit 0807093)، جاهز للدفع — يحتاج رابط المستودع + token للرفع الفعلي.
 - Railway: ملفات النشر جاهزة (railway.toml + Dockerfile + .env.example) — تحتاج حساب Railway + تعيين متغيرات البيئة.
 - لا انحدار: الصفحة + المساعد الذكي يعملان بعد كل التغييرات.
+
+---
+Task ID: PG1-PG6
+Agent: main (orchestrator)
+Task: الانتقال من SQLite إلى PostgreSQL.
+
+Work Log:
+- PG1: فحصت البيئة — لا يوجد psql/postgres مثبّت، apt يحتاج root (لا يوجد password للـ sudo). لكن `/usr/local/bin` قابل للكتابة. ثبّتت `embedded-postgres` (يحوي PostgreSQL 18.4 binary حقيقي) + `@electric-sql/pglite` عبر bun.
+- PG2: كتبت mini-services/start-pg.sh يُشغّل `pg_ctl` كـ daemon على المنفذ 5432. أنشأت قاعدة البيانات `semah_db` عبر Prisma متصلاً بقاعدة `postgres` الافتراضية (لا يوجد psql/createdb في الـ binary، فقط initdb/pg_ctl/postgres).
+- PG3: حدّثت prisma/schema.prisma: `provider = "postgresql"` (بدل sqlite). بقية الأنواع (String, Int, DateTime, Boolean, Json) متوافقة مع PostgreSQL.
+- PG4: حدّثت .env و .env.example: `DATABASE_URL="postgresql://postgres@localhost:5432/semah_db?schema=public"`.
+- PG5: `prisma db push` نجح → ٢٠ جدولًا منشأة في PostgreSQL. `bun run db:seed` نجح → بيانات تجريبية كاملة (مستخدم + مشروع + brief + strategy + ٣ اتجاهات + لوحة ألوان + خطوط + mood board + brand book + رابط عميل + ٤ سجلات AI). تحققت من العلاقات: مطابقة لـ SQLite.
+- PG6: التحقق النهائي (خادم dev + curl):
+  - GET / → 200 (179ms)
+  - /api/auth/session → 200 {} (Prima→PostgreSQL يعمل)
+  - /api/notifications → 401 (auth gate يعمل)
+  - /api/ai/chat → 200 برد عربي دقيق عن اختيار الألوان
+  - 0 أخطاء في dev log
+  - agent-browser: title صحيح، h1 «من فكرة إلى هوية تُعرَف»، ١٠ أقسام، زر المحادثة موجود.
+  - lint نظيف.
+- أضفت `db:start` script + .pgdata/ إلى .gitignore. commit: 1529687.
+
+Stage Summary:
+- قاعدة البيانات الآن PostgreSQL 18.4 (embedded) بدل SQLite.
+- ٢٠ جدولًا + بيانات تجريبية + كل الـ endpoints تعمل.
+- للتشغيل المحلي: `bun run db:start` ثم `db:push` ثم `db:seed` ثم `dev`.
+- جاهز لـ Railway PostgreSQL: فقط ضع DATABASE_URL الخاص بـ Railway.

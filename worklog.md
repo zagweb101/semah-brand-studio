@@ -105,3 +105,20 @@ Stage Summary:
 - /home/z/my-project/.gitignore — appended 2 blocks (Database files + Railway), 62 lines total now.
 - No files in src/, prisma/schema.prisma, or package.json were modified. No git commands run. No packages installed.
 - Open issue for orchestrator: package.json has no `db:seed` script, so the README quick-start skips it. If a seed script is desired later, it must be added to package.json by a separate task (out of this subagent's scope).
+
+---
+Task ID: P1-P4
+Agent: main (orchestrator) + subagent (Task 2-3)
+Task: تنفيذ ٤ مراحل: قاعدة البيانات + GitHub + Railway + التحقق النهائي.
+
+Work Log:
+- P1 (DB): أعدت كتابة prisma/schema.prisma — أضفت ١١ نموذجًا لمجال الهوية (BrandProject, BrandBrief, BrandStrategy, VisualDirection, ColorPalette, FontSystem, MoodBoard, MoodBoardItem, BrandBook, ClientShare, AICreditUsage) مع الحفاظ على نماذج المصادقة. أصلحت خطأين أثناء db:push (حقل aiUsage يتيم + Json default غير مدعوم في SQLite). prisma db push نجح. الجداول أصبحت ٢٠ (كانت ٩). كتبت prisma/seed.ts كامل (مستخدم + مشروع + brief + strategy + ٣ اتجاهات + لوحة ألوان + نظام خطوط + mood board بعنصرين + brand book + رابط عميل + ٤ سجلات AI + إشعار). أضفت db:seed و db:studio + prisma.seed إلى package.json. شغّلت db:seed بنجاح وتحققت من العلاقات.
+- P2 (GitHub): subagent أنشأ README.md عربي (٢٧٢ سطر)، LICENSE (MIT 2026)، .env.example. أصلحت .gitignore (أضفت db/*.db + استثناء !.env.example). اكتشفت أن .env و db/custom.db كانتا متتبعتين من initial commit → git rm --cached لإلغاء تتبعهما (أمني). commit واحد نظيف بكل التغييرات. لا يوجد gh CLI ولا token → لا يمكن الرفع الآلي؛ المستودع جاهز محليًا للدفع.
+- P3 (Railway): subagent أنشأ railway.toml (Nixpacks: nodejs_22+bun, install, db:generate, build, start, healthcheck /api/auth/session) + Dockerfile (٣ مراحل: deps→builder→runner, node:22-alpine, prisma client). تحققت: next.config.ts has output:"standalone" ✓، bun.lock موجود ✓، lint نظيف ✓.
+- P4 (التحقق): GET / → 200 (230ms). POST /api/ai/chat → 200 برد عربي دقيق يعدد الباقات الأربع. agent-browser: لا أخطاء، ١٠ أقسام، زر «اسأل سِمَة» موجود، h1 صحيح.
+
+Stage Summary:
+- قاعدة البيانات: ٢٠ جدولًا، schema مجال «سِمَة» كامل + بيانات تجريبية.
+- GitHub: مستودع محلي نظيف (commit 0807093)، جاهز للدفع — يحتاج رابط المستودع + token للرفع الفعلي.
+- Railway: ملفات النشر جاهزة (railway.toml + Dockerfile + .env.example) — تحتاج حساب Railway + تعيين متغيرات البيئة.
+- لا انحدار: الصفحة + المساعد الذكي يعملان بعد كل التغييرات.

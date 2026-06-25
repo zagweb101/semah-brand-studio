@@ -23,7 +23,7 @@ cmds = [
 
 [deploy]
 startCommand = "bun run start"
-healthcheckPath = "/api/auth/session"
-healthcheckTimeout = 60
+healthcheckPath = "/"
+healthcheckTimeout = 90
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

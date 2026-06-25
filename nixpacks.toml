@@ -11,11 +11,11 @@ cmds = ["bun install --frozen-lockfile"]
 [phases.build]
 cmds = [
   "bun run db:generate",
-  # أنشئ الجداول في PostgreSQL وقت البناء (آمن — prisma db push idempotent)
-  "bunx prisma db push --skip-generate --accept-data-loss || true",
   "bunx next build"
 ]
 
 [start]
-# فك تشفير إعدادات z-ai من ZAI_CONFIG_B64 قبل بدء التطبيق
-cmd = "echo \"$ZAI_CONFIG_B64\" | base64 -d > .z-ai-config && bunx next start -p ${PORT:-3000}"
+# 1) فك تشفير إعدادات z-ai
+# 2) أنشئ/حدّث الجداول في PostgreSQL (idempotent — آمن عند كل بدء)
+# 3) ابدأ التطبيق
+cmd = "echo \"$ZAI_CONFIG_B64\" | base64 -d > .z-ai-config && bunx prisma db push --skip-generate --accept-data-loss && bunx next start -p ${PORT:-3000}"

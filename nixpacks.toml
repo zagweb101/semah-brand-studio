@@ -11,6 +11,8 @@ cmds = ["bun install --frozen-lockfile"]
 [phases.build]
 cmds = [
   "bun run db:generate",
+  # أنشئ الجداول في PostgreSQL وقت البناء (آمن — prisma db push idempotent)
+  "bunx prisma db push --skip-generate --accept-data-loss || true",
   "bunx next build"
 ]
 

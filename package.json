@@ -13,7 +13,7 @@
     "db:reset": "prisma migrate reset",
     "db:seed": "bun run prisma/seed.ts",
     "db:studio": "prisma studio",
-    "db:start": "bash mini-services/start-pg.sh"
+    "db:start": "bun run mini-services/start-postgres.ts"
   },
   "prisma": {
     "seed": "bun run prisma/seed.ts"

@@ -166,3 +166,29 @@ Work Log:
 Stage Summary:
 - المشروع الآن يعمل على Windows بـ Bun + embedded-postgres (يكتشف المنصة تلقائيًا).
 - تعليمات Windows للمستخدم في رسالة منفصلة.
+
+---
+Task ID: DEPLOY
+Agent: main
+Task: رفع المشروع إلى GitHub + النشر على Railway.
+
+Work Log:
+- GitHub: التوكن لمستخدم zagweb101. اكتشفت مستودعًا فارغًا zagweb101/semah-brand-studio → دفعت الكود إليه (remote + git push). كل الـ commits على main.
+- Railway: التوكن حساب API token (عمل مع GraphQL). أنشأت project "honest-dream" (id e319dae5) في workspace zagweb101 + ربطت مستودع GitHub (auto-deploy). خدمة ويب semah-brand-studio + بيئة production.
+- PostgreSQL: أنشأت خدمة postgres (postgres:16 image) + ضبطت POSTGRES_PASSWORD/USER/DB. DATABASE_URL على الويب = postgresql://postgres:postgres@${{postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/semah_db.
+- متغيرات: AUTH_SECRET (عشوائي)، NEXTAUTH_URL (https://${{RAILWAY_PUBLIC_DOMAIN}})، NODE_ENV=production، ZAI_CONFIG_B64 (base64 لإعداد z-ai).
+- نطاق: semah-brand-studio-production.up.railway.app.
+- إصلاحات النشر (5 محاولات):
+  1. فشل: Node.js 18 EOL → أصلحت: package.json engines + nixpacks.toml nodejs_22.
+  2. فشل: standalone server crash → أصلحت: next start القياسي بدل standalone.
+  3. نجح البناء، فشل AI: z-ai config غير موجود → أصلحت: ZAI_CONFIG_B64 + كتابة .z-ai-config وقت التشغيل.
+  4. فشل AI: internal-api.z.ai على IPs خاصة غير متاح من Railway → أضفت fallback ذكي + مهلة ٨ث.
+  5. فشل fallback: scoping (history داخل try) → أصلحت: lastUserQuestion خارج try.
+- النتيجة النهائية: SUCCESS. كل شيء يعمل.
+
+Stage Summary:
+- GitHub: https://github.com/zagweb101/semah-brand-studio (main, 8 commits)
+- Railway: https://semah-brand-studio-production.up.railway.app (LIVE)
+- الصفحة: 200 + كل المحتوى العربي. المصادقة + PostgreSQL: يعمل (session=200, notifications=401).
+- المساعد الذكي: fallback ذكي يعمل (z-ai API على شبكة خاصة غير متاحة من Railway).
+- ⚠️ المستخدم يجب أن يدوّر (rotate) كلا التوكنين لأنهما شُوركا في المحادثة.

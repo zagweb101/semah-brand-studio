@@ -62,3 +62,6 @@ prisma/*.db-journal
 
 # Railway
 railway.env
+# Embedded PostgreSQL data dir
+.pgdata/
+

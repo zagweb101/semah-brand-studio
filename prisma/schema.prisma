@@ -11,8 +11,8 @@ generator client {
 }
 
 datasource db {
-  // Local dev = SQLite; production = PostgreSQL (just change DATABASE_URL + provider)
-  provider = "sqlite"
+  // Local dev = embedded PostgreSQL (port 5432); production = Railway PostgreSQL.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

@@ -15,4 +15,5 @@ cmds = [
 ]
 
 [start]
-cmd = "bunx next start -p ${PORT:-3000}"
+# فك تشفير إعدادات z-ai من ZAI_CONFIG_B64 قبل بدء التطبيق
+cmd = "echo \"$ZAI_CONFIG_B64\" | base64 -d > .z-ai-config && bunx next start -p ${PORT:-3000}"

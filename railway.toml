@@ -1,28 +1,12 @@
 # ─────────────────────────────────────────────────────────────
-# Railway (Nixpacks) deployment config for SEMAH AI Brand Studio
+# Railway deployment config for SEMAH AI Brand Studio
+# Build phases are defined in nixpacks.toml (Node 22 + Bun).
 # ─────────────────────────────────────────────────────────────
-# Builds a Next.js standalone output with Bun, then serves it
-# with `bun run start` (which runs .next/standalone/server.js).
-# The build script in package.json already copies .next/static
-# and public/ into .next/standalone/ for a self-contained image.
 
 [build]
 builder = "NIXPACKS"
 
-[build.nixpacksPlan.phases.setup]
-nixPkgs = ["nodejs_22", "bun"]
-
-[build.nixpacksPlan.phases.install]
-cmds = ["bun install --frozen-lockfile"]
-
-[build.nixpacksPlan.phases.build]
-cmds = [
-  "bun run db:generate",
-  "bun run build"
-]
-
 [deploy]
-startCommand = "bun run start"
 healthcheckPath = "/"
 healthcheckTimeout = 90
 restartPolicyType = "ON_FAILURE"

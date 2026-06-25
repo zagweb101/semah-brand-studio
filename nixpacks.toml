@@ -1,5 +1,6 @@
 # Nixpacks build configuration for SEMAH AI Brand Studio
-# Ensures Node.js 22 + Bun are used (avoids EOL Node 18 default).
+# Uses `next start` (standard) instead of standalone for reliability.
+# Ensures Node.js 22 + Bun (avoids EOL Node 18 default).
 
 [phases.setup]
 nixPkgs = ["nodejs_22", "bun"]
@@ -10,13 +11,8 @@ cmds = ["bun install --frozen-lockfile"]
 [phases.build]
 cmds = [
   "bun run db:generate",
-  "bun run build",
-  # نسخ محرك Prisma إلى standalone (Next.js لا يتتبّعه تلقائيًا)
-  "mkdir -p .next/standalone/node_modules/.prisma",
-  "cp -r node_modules/.prisma/* .next/standalone/node_modules/.prisma/ 2>/dev/null || true",
-  "mkdir -p .next/standalone/node_modules/@prisma",
-  "cp -r node_modules/@prisma/client .next/standalone/node_modules/@prisma/client 2>/dev/null || true"
+  "bunx next build"
 ]
 
 [start]
-cmd = "node .next/standalone/server.js"
+cmd = "bunx next start -p ${PORT:-3000}"

@@ -149,3 +149,20 @@ Stage Summary:
 - ٢٠ جدولًا + بيانات تجريبية + كل الـ endpoints تعمل.
 - للتشغيل المحلي: `bun run db:start` ثم `db:push` ثم `db:seed` ثم `dev`.
 - جاهز لـ Railway PostgreSQL: فقط ضع DATABASE_URL الخاص بـ Railway.
+
+---
+Task ID: WIN-FIX
+Agent: main
+Task: إصلاح التوافق مع Windows (المستخدم على PowerShell بدون bun).
+
+Work Log:
+- المشكلة: start-pg.sh bash script + embedded-postgres بـ os=linux ثابت + بيانات تُمسح كل تشغيل + auth افتراضي "password" لكن DATABASE_URL بدون كلمة مرور.
+- أعدت كتابة mini-services/start-postgres.ts: اكتشاف تلقائي للمنصة (windows/linux/darwin + x64/arm64)، بيانات دائمة، كلمة مرور صريحة postgres:postgres، إيقاف نظيف على Windows عبر stdin.
+- package.json db:start → bun run mini-services/start-postgres.ts.
+- .env + .env.example → DATABASE_URL مع كلمة المرور.
+- اختبار كامل: start → semah_db exists → db:push (20 جدول) → db:seed (✓) → verify (1 user, 1 project, 3 directions). كل شيء يعمل.
+- commit 14a4f3b.
+
+Stage Summary:
+- المشروع الآن يعمل على Windows بـ Bun + embedded-postgres (يكتشف المنصة تلقائيًا).
+- تعليمات Windows للمستخدم في رسالة منفصلة.

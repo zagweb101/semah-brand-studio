@@ -41,3 +41,39 @@ Stage Summary:
 - /home/z/my-project/public/semah-logo.png — 1024x1024, 38,658 bytes (~38 KB). Emerald/teal geometric "S"/rocket-in-hexagon mark on near-black.
 - /home/z/my-project/public/semah-og.png — 1344x768, 101,020 bytes (~101 KB). Dark premium dev background with emerald glow, abstract UI/code panels, rocket motif, left-side negative space for text overlay.
 - Note for orchestrator: OG is 1344x768 (1.75:1), not the ideal 1200x630 (1.905:1) — the API rejects non-multiple-of-32 dimensions, so 1440x720 is unavailable. CSS-crop / object-cover will handle the aspect ratio when overlaid in HTML.
+
+---
+Task ID: 3-12
+Agent: main (orchestrator)
+Task: Build & verify the full Arabic RTL SEMAH AI Brand Studio landing page.
+
+Work Log:
+- Fetched deployed app (semah-production.up.railway.app) + /pricing, /blog, /how-it-works to learn the real product: Arabic-first AI brand-identity studio (8 features, 4-step flow, 3 audiences, 4 plans).
+- globals.css: dark-first emerald/teal theme, Arabic font vars (IBM Plex Sans Arabic + Cairo), RTL-aware utilities, animations (fade-up, float, pulse-ring, marquee with RTL reverse, shimmer).
+- layout.tsx: lang=ar dir=rtl, both Arabic Google fonts, full Arabic metadata + OG/Twitter cards pointing to /semah-og.png + /semah-logo.png.
+- providers.tsx: defaultTheme=dark, enableSystem=false, RTL sonner.
+- plans.ts: 4 Arabic plans (مجاني/ستارتر/احترافي/وكالة) matching deployed pricing.
+- /api/ai/chat/route.ts: PUBLIC (no auth gate), rich Arabic system prompt encoding all 8 features + 4 steps + audiences + pricing + answer guidelines; uses z-ai-web-dev-sdk chat.completions with role:system, history capped to 12 msgs, content sanitized.
+- navbar.tsx + landing-footer.tsx: Arabic RTL, self-contained (no /dashboard/auth deps), scroll-aware sticky nav, mobile hamburger menu.
+- brand-canvas.tsx (new client component): animated "Brand Sheet" hero visual — palette grid (6 swatches w/ WCAG AA badge), type specimen, design-tokens.css code block, floating بوابة عميل / عربي RTL badges (framer-motion).
+- pricing-table.tsx: Arabic numerals, highlight badge, simulated subscribe w/ sonner toast.
+- ask-semah-chat.tsx (new): floating AI assistant — launcher w/ pulse-ring, RTL chat panel, markdown rendering (react-markdown), suggested prompts, typing indicator, error handling, new-conversation reset. Wired to /api/ai/chat.
+- cta-button.tsx (new client wrapper): lets the server-component page use onClick CTAs safely.
+- page.tsx: full Arabic server component — hero (badge + headline + copy + CTAs + stats + BrandCanvas), tech marquee, 8 features grid + "من ساعات إلى دقائق" banner, 4-step how-it-works with connector line, 3 audience cards, 3 testimonials, 4-plan pricing, 6-item FAQ accordion, gradient CTA, footer, + AskSemahChat floating widget.
+
+Verification (agent-browser end-to-end):
+- Lint: clean (eslint . passes).
+- Dev server: all GET / return 200; POST /api/ai/chat returns 200 (3.6s + 5.7s).
+- Page title: "سِمَة — SEMAH AI Brand Studio | استوديو الهوية بالذكاء الاصطناعي".
+- HTML: lang=ar dir=rtl confirmed; all 11 key Arabic strings present.
+- Visual: dark emerald theme rendered (avg RGB 14,29,23); no console errors; no horizontal overflow.
+- AI chat: opened launcher → typed "ما هي سِمَة؟" → received accurate multi-paragraph Arabic reply correctly describing features/steps/audiences. Markdown rendered.
+- FAQ accordion: click expands (expanded=true) and reveals answer region.
+- Theme toggle: dark↔light switches body bg lab(3)↔lab(99), html class dark/light.
+- Mobile (390x844): hamburger "القائمة" present; menu expands with all nav links + Sign In/Get Started.
+- Sticky footer: footerAtBottom=true; long page (5974px) pushes footer naturally.
+
+Stage Summary:
+- Production-ready Arabic RTL landing page for SEMAH AI Brand Studio, deployed on / route.
+- Public AI assistant "اسأل سِمَة" fully working end-to-end via LLM skill (z-ai-web-dev-sdk).
+- All interactive flows browser-verified. No outstanding issues.

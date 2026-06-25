@@ -81,13 +81,19 @@ export async function POST(req: Request) {
     const ZAI = (await import("z-ai-web-dev-sdk")).default;
     const zai = await ZAI.create();
 
-    const result = await zai.chat.completions.create({
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...history,
-      ],
-      thinking: { type: "disabled" },
-    });
+    // مهلة ٨ ثوانٍ — إذا فشل الاتصال، ننتقل للرد الاحتياطي بسرعة
+    const result = await Promise.race([
+      zai.chat.completions.create({
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...history,
+        ],
+        thinking: { type: "disabled" },
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("AI_TIMEOUT")), 8000)
+      ),
+    ]);
 
     const reply =
       result.choices?.[0]?.message?.content?.trim() ||
@@ -96,10 +102,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ reply });
   } catch (error) {
     console.error("POST /api/ai/chat error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      { error: "تعذّر الاتصال بالمساعد الذكي", details: message },
-      { status: 500 }
-    );
+    // fallback ذكي عند تعذّر الوصول لخدمة الذكاء الاصطناعي
+    const lastUser = [...history].reverse().find((m) => m.role === "user");
+    const reply = getFallbackReply(lastUser?.content || "");
+    return NextResponse.json({ reply, fallback: true });
   }
+}
+
+/**
+ * ردود احتياطية ذكية عن المنصة عند تعذّر الوصول لـ AI.
+ * تطابق كلمات مفتاحية في سؤال المستخدم وتعطي ردًا مفيدًا.
+ */
+function getFallbackReply(question: string): string {
+  const q = question.toLowerCase();
+  const has = (...words: string[]) => words.some((w) => q.includes(w));
+
+  if (has("سِمَة", "سيمة", "semah", "ما هي", "وش", "ايش"))
+    return "سِمَة (SEMAH AI Brand Studio) منصة عربية متكاملة لبناء أنظمة الهوية المؤسسية بالذكاء الاصطناعي — من الاستراتيجية إلى الألوان والخطوط وMood Boards وBrand Book وبوابة العميل. تحوّل أسابيع من العمل إلى دقائق.\n\n⚠️ ملاحظة: المساعد الذكي يعمل بكامل قدراته في بيئة التطوير. على الخادم المنشور، الردود الذكية قد تكون محدودة.";
+
+  if (has("سعر", "باقة", "باقه", "اشتراك", "price", "plan"))
+    return "تقدم سِمَة ٤ باقات:\n\n- **مجاني** ($٠): ٢٥ رصيد AI، مشروع واحد.\n- **ستارتر** ($١٩): ١٠٠ رصيد، ٥ مشاريع، ٣ اتجاهات.\n- **احترافي** ($٤٩): ٥٠٠ رصيد، ٢٠ مشروعًا، Brand Book + بوابة عميل.\n- **وكالة** ($١٤٩): ٢٠٠٠ رصيد، مشاريع غير محدودة، ١٠ أعضاء.";
+
+  if (has("لون", "الوان", "ألوان", "color"))
+    return "نصيحة لاختيار الألوان: ابدأ بشخصية علامتك. اختر لونًا أساسيًا يعكس جوهرها، مع لونين مساعدين. في سِمَة، نولّد ١١ لونًا منسجمًا مع فحص WCAG للتباين وتصدير CSS Variables.\n\n⚠️ المساعد الكامل متاح في بيئة التطوير.";
+
+  if (has("خط", "خطوط", "font", "طباعة"))
+    return "نقترح خطوطًا عربية وإنجليزية مرخصة مع معاينات فعلية: Cairo وIBM Plex Sans Arabic للنصوص، Alexandria وManrope للعناوين. كل خط يُعرض باسم مشروعك.\n\n⚠️ المساعد الكامل متاح في بيئة التطوير.";
+
+  if (has("عميل", "بوابة", "مشاركة", "client", "share"))
+    return "بوابة العميل تتيح مشاركة المشروع برابط آمن، مع كلمة مرور اختيارية وصلاحيات دقيقة. يمكن للعميل التعليق، طلب تعديلات، واعتماد الإصدار النهائي.\n\n⚠️ المساعد الكامل متاح في بيئة التطوير.";
+
+  if (has("كيف", "طريقة", "خطوات", "work", "how"))
+    return "آلية العمل في ٤ خطوات:\n١. أنشئ مشروعًا (Brand Brief).\n٢. ولّد الاستراتيجية بالذكاء الاصطناعي.\n٣. اختر اتجاهًا بصريًا من ٣ خيارات.\n٤. صدّر Brand Book وشارك مع العميل.\n\n⚠️ المساعد الكامل متاح في بيئة التطوير.";
+
+  return "أهلًا بك! أنا سِمَة، مساعدك لبناء الهوية المؤسسية. يمكنني مساعدتك في فهم المنصة، اختيار الألوان والخطوط، وطريقة العمل.\n\n⚠️ ملاحظة: المساعد الذكي الكامل يعمل في بيئة التطوير. على الخادم المنشور حاليًا، أقدم ردودًا أساسية. للاستفسارات التفصيلية، راجع قسم الأسئلة الشائعة في الصفحة.";
 }

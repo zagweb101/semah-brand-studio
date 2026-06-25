@@ -192,3 +192,26 @@ Stage Summary:
 - الصفحة: 200 + كل المحتوى العربي. المصادقة + PostgreSQL: يعمل (session=200, notifications=401).
 - المساعد الذكي: fallback ذكي يعمل (z-ai API على شبكة خاصة غير متاحة من Railway).
 - ⚠️ المستخدم يجب أن يدوّر (rotate) كلا التوكنين لأنهما شُوركا في المحادثة.
+
+---
+Task ID: AUTH
+Agent: main
+Task: تفعيل التسجيل والدخول الحقيقيين (كانت تُظهر «التسجيل قريبًا»).
+
+Work Log:
+- auth-modal.tsx: إعادة كتابة كاملة بالعربية RTL — تبويبا دخول/حساب جديد، أيقونات Mail/Lock/User، حساب تجريبي (demo@semah.studio / semah123)، تصميم سِمَة.
+- cta-button.tsx: يفتح AuthModal بدل toast.
+- navbar.tsx: أزرار دخول/تسجيل تفتح AuthModal؛ يعرض حالة المستخدم المسجّل (الاسم + زر خروج)؛ useSession + signOut.
+- db.ts: إزالة log:['query'] → ['error','warn'].
+- اختبار محلي على PostgreSQL: تسجيل ✓، دخول demo@semah.studio ✓، إشعارات ✓، خروج ✓.
+- نشر على Railway:
+  - الخطأ 1: 401 «Can't reach database server postgres-69d6bc21.railway.internal» → خدمة postgres image يدوية لم تكن متاحة. حذفتها وأنشأت Railway PostgreSQL plugin رسمي.
+  - الخطأ 2: «table public.User does not exist» → db:push في build phase لم يُنفّذ. نقلته إلى start command.
+  - النتيجة: التسجيل والدخول يعملان على الإنتاج ✓.
+- إصلاحات نشر: commits 4088561 (auth), c493a09 (db push build), a8fd7a4 (db push start).
+
+Stage Summary:
+- التسجيل والدخول يعملان بالكامل على https://semah-brand-studio-production.up.railway.app
+- مسار: اضغط «ابدأ مجانًا» → نموذج → إنشاء حساب → جلسة نشطة → إشعار ترحيب.
+- حساب العرض: demo@semah.studio / semah123 (محليًا فقط، Railway DB لا تحتوي عليه).
+- المكوّنات: AuthModal عربي، Navbar يعرض حالة المستخدم، CtaButton يفتح النموذج.

@@ -77,3 +77,31 @@ Stage Summary:
 - Production-ready Arabic RTL landing page for SEMAH AI Brand Studio, deployed on / route.
 - Public AI assistant "اسأل سِمَة" fully working end-to-end via LLM skill (z-ai-web-dev-sdk).
 - All interactive flows browser-verified. No outstanding issues.
+
+---
+Task ID: 2-3
+Agent: github+railway prep subagent
+Task: Create GitHub repo-readiness files + Railway deployment config
+
+Work Log:
+- Read prior worklog (Tasks 1, 2-a, 3-12) to understand project context: Arabic-first RTL SEMAH AI Brand Studio landing page already built and verified; stack is Next.js 16 + Tailwind v4 + Prisma 6 + Auth.js v4 + z-ai-web-dev-sdk + Framer Motion.
+- Inspected package.json to confirm available npm scripts (dev, build, start, lint, db:push, db:generate, db:migrate, db:reset). Note: db:seed is NOT defined in package.json — omitted from README quick-start + scripts table to avoid instructing users to run a non-existent command.
+- Inspected prisma/schema.prisma, src/ directory tree, and .gitignore to make README structure tree and env table accurate.
+- Wrote README.md (Arabic, comprehensive): title + tagline, 5 shields.io badges, 3-paragraph overview, 8-feature table (matches landing page exactly), 4-step workflow, tech-stack table (13 layers), quick-start with bun, npm scripts table (8 real scripts), env-vars table (13 vars), project-structure tree, deployment section (Railway Nixpacks steps + Docker alternative), roadmap (8 checkboxes), MIT license note.
+- Wrote LICENSE: standard MIT text, Copyright (c) 2026 SEMAH AI Brand Studio.
+- Wrote railway.toml: Nixpacks config with nodejs_22 + bun, frozen-lockfile install, db:generate + build phases, startCommand="bun run start", healthcheckPath="/api/auth/session", timeout 60s, restartPolicy ON_FAILURE max 3 retries.
+- Wrote Dockerfile: 3-stage multi-stage build (deps → builder → runner) using oven/bun:1 for build and node:22-alpine for runtime; copies .next/standalone, .next/static, public, node_modules/.prisma + @prisma/client, package.json; non-root user nextjs:nodejs; EXPOSE 3000; CMD ["node", "server.js"]; stage-by-stage comments.
+- Wrote .env.example: documented template with sections for Database (SQLite + PostgreSQL), Auth (AUTH_SECRET, NEXTAUTH_URL), Google OAuth, Z.ai SDK, Stripe billing (future), Resend (future), App (NODE_ENV, NEXT_PUBLIC_APP_URL). No real secrets — all sensitive values commented out or placeholder-only.
+- Edited .gitignore (appended, did not remove existing lines): added Database files block (db/*.db, db/*.db-journal, prisma/*.db, prisma/*.db-journal) + Railway block (railway.env).
+- Fixed two self-caught issues in README: removed accidentally-inserted CJK characters in overview ("دقائق而不是 أسابيع" → "في دقائق بدلًا من أسابيع"), and corrected doubled-dot link `././LICENSE` → `./LICENSE`.
+- Verified all 5 new files exist with `ls -la` + `wc -l`; confirmed .gitignore tail shows the new blocks.
+
+Stage Summary:
+- /home/z/my-project/README.md — 272 lines, 15,322 bytes. Comprehensive Arabic README.
+- /home/z/my-project/LICENSE — 21 lines, 1,078 bytes. MIT, Copyright 2026 SEMAH AI Brand Studio.
+- /home/z/my-project/railway.toml — 29 lines, 1,118 bytes. Nixpacks Next.js standalone config.
+- /home/z/my-project/Dockerfile — 86 lines, 3,859 bytes. Multi-stage bun→node:22-alpine production image.
+- /home/z/my-project/.env.example — 44 lines, 2,571 bytes. Fully documented env template, no real secrets.
+- /home/z/my-project/.gitignore — appended 2 blocks (Database files + Railway), 62 lines total now.
+- No files in src/, prisma/schema.prisma, or package.json were modified. No git commands run. No packages installed.
+- Open issue for orchestrator: package.json has no `db:seed` script, so the README quick-start skips it. If a seed script is desired later, it must be added to package.json by a separate task (out of this subagent's scope).

@@ -1,13 +1,24 @@
-// Prisma schema — Semah SaaS Boilerplate (SQLite)
+// Prisma schema — سِمَة · SEMAH AI Brand Studio
+// Layers:
+//   1) Auth.js adapter (User, Account, Session, VerificationToken)
+//   2) SaaS billing & teams (Subscription, Organization, Membership, Notification, BlogPost)
+//   3) Brand-identity domain (BrandProject, BrandBrief, BrandStrategy,
+//      VisualDirection, ColorPalette, FontSystem, MoodBoard, MoodBoardItem,
+//      BrandBook, ClientShare, AICreditUsage)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
+  // Local dev = SQLite; production = PostgreSQL (just change DATABASE_URL + provider)
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+// ─────────────────────────────────────────────────────────
+// 1) Auth (NextAuth.js v4 + Prisma Adapter)
+// ─────────────────────────────────────────────────────────
 
 model User {
   id            String          @id @default(cuid())
@@ -23,8 +34,13 @@ model User {
   ownedOrgs     Organization[]
   notifications Notification[]
   posts         BlogPost[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+
+  // Brand-identity domain
+  brandProjects BrandProject[]
+  aiUsage       AICreditUsage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
@@ -61,23 +77,23 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ── Subscriptions (mock Stripe) ───────────────────────────
+// ─────────────────────────────────────────────────────────
+// 2) SaaS billing & teams
+// ─────────────────────────────────────────────────────────
 
 model Subscription {
-  id                   String   @id @default(cuid())
-  userId               String   @unique
-  customerId           String   @unique
-  subscriptionId       String?  @unique
-  priceId              String?
-  currentPeriodEnd     DateTime?
-  status               String   @default("incomplete")
-  plan                 String?
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  customerId       String   @unique
+  subscriptionId   String?  @unique
+  priceId          String?
+  currentPeriodEnd DateTime?
+  status           String   @default("incomplete")
+  plan             String?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
-
-// ── Organizations / Teams ───────────────────────────────
 
 model Organization {
   id          String       @id @default(cuid())
@@ -87,23 +103,22 @@ model Organization {
   ownerId     String
   owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   memberships Membership[]
+  projects    BrandProject[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
 
 model Membership {
-  id              String       @id @default(cuid())
-  userId          String
-  organizationId  String
-  role            String       @default("MEMBER")
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdAt       DateTime     @default(now())
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String       @default("MEMBER")
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
 
   @@unique([userId, organizationId])
 }
-
-// ── Notifications ────────────────────────────────────────
 
 model Notification {
   id        String   @id @default(cuid())
@@ -116,18 +131,201 @@ model Notification {
   createdAt DateTime @default(now())
 }
 
-// ── Blog / CMS ───────────────────────────────────────────
-
 model BlogPost {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  excerpt     String
-  content     String
-  coverImage  String?
-  published   Boolean   @default(false)
-  authorId    String
-  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  title      String
+  slug       String    @unique
+  excerpt    String
+  content    String
+  coverImage String?
+  published  Boolean   @default(false)
+  authorId   String
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
+
+// ─────────────────────────────────────────────────────────
+// 3) Brand-identity domain — سِمَة core
+// ─────────────────────────────────────────────────────────
+
+/// مشروع هوية مؤسسية كامل — يربط كل مخرجات المنصة (استراتيجية، اتجاهات، ألوان، خطوط، Mood Board، Brand Book، مشاركة عميل).
+model BrandProject {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  status         String   @default("brief") // brief | strategy | directions | design | export | complete
+  currentStep    Int      @default(1)       // خطوة الـ Brand Brief الحالية (1..n)
+  industry       String?
+  targetAudience String?
+  locale         String   @default("ar")    // ar | en | ar,en
+
+  ownerId        String
+  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  brief           BrandBrief?
+  strategy        BrandStrategy?
+  visualDirections VisualDirection[]
+  colorPalettes   ColorPalette[]
+  fontSystems     FontSystem[]
+  moodBoards      MoodBoard[]
+  brandBooks      BrandBook[]
+  clientShares    ClientShare[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// الـ Brand Brief متعدد الخطوات (يُحفظ تلقائيًا ويُستكمل لاحقًا).
+model BrandBrief {
+  id              String  @id @default(cuid())
+  projectId       String  @unique
+  project         BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  companyName     String?
+  description     String?
+  industry        String?
+  targetAudience  String?
+  competitors     String?
+  values          Json?   // string[] — قيم المؤسسة
+  goals           Json?   // string[]
+  toneKeywords    Json?   // string[] — نبرة التواصل
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// الاستراتيجية المولّدة بالذكاء الاصطناعي (رؤية، رسالة، قيم، شخصية، نبرة).
+model BrandStrategy {
+  id              String  @id @default(cuid())
+  projectId       String  @unique
+  project         BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  vision          String?
+  mission         String?
+  coreValues      Json?   // string[]
+  personality     Json?   // string[]
+  toneOfVoice     String?
+  positioning     String?
+  differentiators Json?   // string[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// اتجاه بصري متمايز (٣ اتجاهات لكل مشروع) — يستخدمه المستخدم للمقارنة والاختيار.
+model VisualDirection {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  description    String?
+  styleKeywords  Json?    // string[]
+  colorStory     String?
+  typographyStory String?
+  imageryStyle   String?
+  shapeLanguage  String?
+  selected       Boolean  @default(false) // الاتجاه المختار
+  createdAt      DateTime @default(now())
+
+  @@unique([projectId, slug])
+}
+
+/// لوحة ألوان ذكية (١١ لونًا) مع فحص WCAG وتصدير CSS Variables.
+model ColorPalette {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  directionId   String?
+  name          String
+  swatches      Json     // { name, hex, role, contrast }[]
+  wcagAA        Boolean  @default(true)
+  cssVariables  String?  // ملف CSS جاهز
+  createdAt     DateTime @default(now())
+}
+
+/// نظام خطوط عربي + إنجليزي مع معاينات وروابط الترخيص.
+model FontSystem {
+  id               String   @id @default(cuid())
+  projectId        String
+  project          BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  directionId      String?
+  displayFont      String?
+  bodyFont         String?
+  arabicDisplayFont String?
+  arabicBodyFont   String?
+  displayFontUrl   String?
+  bodyFontUrl      String?
+  notes            String?
+  createdAt        DateTime @default(now())
+}
+
+/// لوحة Mood Board — تُجمّع الصور المرجعية والمولّدة بالسحب والإفلات.
+model MoodBoard {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  directionId String?
+  title       String
+  items       MoodBoardItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// عنصر صورة على الـ Mood Board (مرفوع أو مولّد بالذكاء الاصطناعي).
+model MoodBoardItem {
+  id         String   @id @default(cuid())
+  moodBoardId String
+  moodBoard   MoodBoard @relation(fields: [moodBoardId], references: [id], onDelete: Cascade)
+  imageUrl   String
+  source     String   @default("upload") // upload | generated
+  prompt     String?
+  posX       Float    @default(0)
+  posY       Float    @default(0)
+  width      Float?
+  height     Float?
+  zIndex     Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+/// Brand Book احترافي (٢٥ قسمًا قابلًا للتخصيص) + تصدير PDF عربي A4.
+model BrandBook {
+  id        String   @id @default(cuid())
+  projectId String
+  project   BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version   Int      @default(1)
+  status    String   @default("draft") // draft | generated | exported
+  sections  Json?    // { id, title, content }[]
+  pdfUrl    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// رابط مشاركة آمن للعميل (بوابة العميل) — كلمة مرور اختيارية وصلاحيات دقيقة.
+model ClientShare {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       BrandProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  token         String    @unique
+  passwordHash  String?
+  permissions   Json?
+  expiresAt     DateTime?
+  views         Int       @default(0)
+  status        String    @default("active") // active | revoked | expired
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+/// سجل استهلاك رصيد الذكاء الاصطناعي لكل مستخدم (لنظام الباقات).
+model AICreditUsage {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   String?
+  feature     String   // strategy | directions | colors | fonts | moodboard | brandbook
+  creditsUsed Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([projectId])
+}
+

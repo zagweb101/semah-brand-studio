@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Menu, X, Sparkles, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { AuthModal } from "@/components/auth-modal";
@@ -92,6 +92,12 @@ export function Navbar() {
           <ThemeToggle />
           {session?.user ? (
             <div className="hidden sm:flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm" className="gap-1.5">
+                <Link href="/dashboard">
+                  <LayoutDashboard className="size-4" />
+                  لوحة التحكم
+                </Link>
+              </Button>
               <span className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs">
                 <span className="flex size-6 items-center justify-center rounded-full bg-primary/15 font-bold text-primary">
                   {session.user.name?.charAt(0) || "م"}

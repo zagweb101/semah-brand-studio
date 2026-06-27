@@ -63,7 +63,10 @@ export function AuthModal({
             : "أهلًا بعودتك!"
         );
         setOpen(false);
-        setTimeout(() => window.location.reload(), 600);
+        // التوجيه إلى لوحة التحكم بعد التسجيل/الدخول
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 500);
       }
     } catch {
       toast.error("حدث خطأ ما. حاول مرة أخرى.");
